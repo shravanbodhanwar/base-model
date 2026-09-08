@@ -1,8 +1,9 @@
+﻿import { prisma } from '../lib/prisma';
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from './auth';
 import { PrismaClient, EventType, ScopeType } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 
 export const auditLog = (eventType: EventType, action: string) => {
   return async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -30,3 +31,4 @@ export const auditLog = (eventType: EventType, action: string) => {
     next();
   };
 };
+

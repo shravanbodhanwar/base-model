@@ -1,3 +1,4 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateJWT, AuthRequest } from '../middleware/auth';
@@ -5,7 +6,7 @@ import { requirePermission } from '../middleware/rbac';
 import { blockchainService } from '../services/blockchain.service';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 router.use(authenticateJWT);
 
 router.get('/transactions', requirePermission('VIEW_TRANSACTION'), async (req: AuthRequest, res) => {
@@ -51,3 +52,4 @@ router.get('/contracts', async (req: AuthRequest, res) => {
 });
 
 export default router;
+

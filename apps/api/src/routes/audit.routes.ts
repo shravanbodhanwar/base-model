@@ -1,10 +1,11 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateJWT, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../middleware/rbac';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 router.use(authenticateJWT);
 
 router.get('/', requirePermission('VIEW_AUDIT_LOG'), async (req: AuthRequest, res) => {
@@ -59,3 +60,4 @@ router.get('/export', requirePermission('EXPORT_AUDIT_LOG'), async (req: AuthReq
 });
 
 export default router;
+

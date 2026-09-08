@@ -1,10 +1,11 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient, VoteOption } from '@prisma/client';
 import { authenticateJWT, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../middleware/rbac';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 router.use(authenticateJWT);
 
 // GET /api/approvals - list approvals
@@ -105,3 +106,4 @@ router.post('/:id/vote', async (req: AuthRequest, res) => {
 });
 
 export default router;
+

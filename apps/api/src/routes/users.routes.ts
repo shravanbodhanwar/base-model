@@ -1,3 +1,4 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
@@ -5,7 +6,7 @@ import { authenticateJWT, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../middleware/rbac';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 router.use(authenticateJWT);
 
 // GET /api/users - list all users (scoped)
@@ -140,3 +141,4 @@ router.get('/:id/activity', async (req: AuthRequest, res) => {
 });
 
 export default router;
+

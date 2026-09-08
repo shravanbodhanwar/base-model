@@ -1,10 +1,11 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient, ScopeType } from '@prisma/client';
 import { authenticateJWT, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../middleware/rbac';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 router.use(authenticateJWT);
 
 router.get('/', requirePermission('MANAGE_ROLES'), async (req: AuthRequest, res) => {
@@ -76,3 +77,4 @@ router.delete('/assignments/:id', requirePermission('MANAGE_ROLES'), async (req:
 });
 
 export default router;
+

@@ -1,6 +1,7 @@
+﻿import { prisma } from '../lib/prisma';
 import { PrismaClient, AuditEvent, ScopeType } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 
 export class AuditService {
   async createAuditEvent(data: Partial<AuditEvent>): Promise<AuditEvent> {
@@ -27,3 +28,4 @@ export class AuditService {
 }
 
 export const auditService = new AuditService();
+

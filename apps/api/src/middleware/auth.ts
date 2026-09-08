@@ -1,8 +1,9 @@
+﻿import { prisma } from '../lib/prisma';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -32,3 +33,4 @@ export const authenticateJWT = async (req: AuthRequest, res: Response, next: Nex
     res.sendStatus(401);
   }
 };
+

@@ -1,10 +1,9 @@
-import { PrismaClient, Status, EntityType, WalletType, OrgType, ScopeType, CredentialType, AssetCategory, Transferability, VoteOption, EventType } from '@prisma/client';
+﻿import { PrismaClient, Status, EntityType, WalletType, OrgType, ScopeType, CredentialType, AssetCategory, Transferability, VoteOption, EventType } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
+import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  console.log('Starting seed [SIMULATED]...');
+  console.log('Starting seed [SIMULATED] via PGlite adapter...');
 
   // Roles
   const rolesData = [
@@ -112,7 +111,7 @@ async function main() {
       }
     });
 
-    const didString = `did:bel:employee:\${u.employeeId}`;
+    const didString = `did:bel:employee:${u.employeeId}`;
     await prisma.dID.create({
       data: {
         did: didString,
@@ -124,7 +123,7 @@ async function main() {
     await prisma.wallet.create({
       data: {
         userId: user.id,
-        address: `0x\${Math.random().toString(16).slice(2, 42).padEnd(40, '0')}`,
+        address: `0x${Math.random().toString(16).slice(2, 42).padEnd(40, '0')}`,
         type: WalletType.SIMULATED,
         encryptedPrivateKey: 'simulated_pk_placeholder'
       }
@@ -187,7 +186,7 @@ async function main() {
     }
   });
 
-  console.log('Seed completed.');
+  console.log('Seed completed successfully via PGlite adapter.');
 }
 
 main().catch(e => {

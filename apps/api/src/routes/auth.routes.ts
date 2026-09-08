@@ -1,3 +1,4 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import * as bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -6,7 +7,7 @@ import { authenticateJWT } from '../middleware/auth';
 import { auditLog } from '../middleware/audit';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 
 router.post('/login', auditLog('AUTH', 'LOGIN'), async (req, res) => {
   const { email, password } = req.body;
@@ -47,3 +48,4 @@ router.get('/me', authenticateJWT, async (req: any, res) => {
 });
 
 export default router;
+

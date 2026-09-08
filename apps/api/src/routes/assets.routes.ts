@@ -1,3 +1,4 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
@@ -6,7 +7,7 @@ import { requirePermission } from '../middleware/rbac';
 import { blockchainService } from '../services/blockchain.service';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 router.use(authenticateJWT);
 
 // GET / - list assets with optional filters
@@ -255,3 +256,4 @@ router.get('/:id/qr', async (req: AuthRequest, res) => {
 });
 
 export default router;
+

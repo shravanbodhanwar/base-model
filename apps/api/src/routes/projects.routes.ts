@@ -1,9 +1,10 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateJWT } from '../middleware/auth';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 
 router.use(authenticateJWT);
 
@@ -34,3 +35,4 @@ router.get('/:id/members', async (req, res) => {
 });
 
 export default router;
+

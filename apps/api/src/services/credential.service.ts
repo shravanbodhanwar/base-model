@@ -1,8 +1,9 @@
+﻿import { prisma } from '../lib/prisma';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 
 export const credentialService = {
   async issueCredential(issuerDID: string, subjectDID: string, type: string, claims: any, issuerId: string, subjectId: string, expiresAt?: Date) {
@@ -78,3 +79,4 @@ export const credentialService = {
     };
   }
 };
+

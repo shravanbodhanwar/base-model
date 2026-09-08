@@ -1,8 +1,9 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 
 // GET /api/verify/credential/:credentialId
 router.get('/credential/:credentialId', async (req, res) => {
@@ -91,3 +92,4 @@ router.get('/asset/:assetId', async (req, res) => {
 });
 
 export default router;
+

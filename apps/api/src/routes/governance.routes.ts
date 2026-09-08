@@ -1,10 +1,11 @@
+﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateJWT, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../middleware/rbac';
 
 const router = Router();
-const prisma = new PrismaClient();
+// Using singleton prisma from lib/prisma
 router.use(authenticateJWT);
 
 // GET / - list all proposals
@@ -158,3 +159,4 @@ router.post('/:id/cancel', requirePermission('MANAGE_GOVERNANCE'), async (req: A
 });
 
 export default router;
+
