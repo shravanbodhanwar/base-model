@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const isBrowser = typeof window !== 'undefined';
+const defaultBaseUrl = isBrowser ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+  baseURL: defaultBaseUrl,
 });
 
 api.interceptors.request.use((config) => {
@@ -24,7 +27,7 @@ api.interceptors.response.use(
 );
 
 const publicApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+  baseURL: defaultBaseUrl,
 });
 
 export const apiClient = {
