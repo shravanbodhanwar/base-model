@@ -9,7 +9,10 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=apps/api\" \"npm run dev --workspace=apps/web\"",
-    "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/api && npm run build --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "build:all": "npm run build --workspace=packages/shared && npm run build --workspace=apps/api && npm run build --workspace=apps/web",
+    "build:web": "npm run build --workspace=apps/web",
+    "build:api": "npm run build --workspace=apps/api",
     "contracts:node": "npm run node --workspace=packages/contracts",
     "contracts:deploy": "npm run deploy --workspace=packages/contracts",
     "contracts:test": "npm run test --workspace=packages/contracts",
