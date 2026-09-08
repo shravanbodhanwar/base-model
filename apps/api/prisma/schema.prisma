@@ -1,0 +1,433 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+  DEACTIVATED
+  COMPROMISED
+  REVOKED
+  EXPIRED
+  SUPERSEDED
+  TRANSFERRED
+  DECOMMISSIONED
+  PENDING_APPROVAL
+  BURNED
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  DEREGISTERED
+  CONFIRMED
+  FAILED
+  FAILURE
+  EXECUTED
+  CANCELLED
+  SUCCESS
+  QUALIFIED
+}
+
+enum EntityType {
+  ORGANIZATION
+  UNIT
+  SBU
+  EMPLOYEE
+  VENDOR
+  PROJECT
+}
+
+enum WalletType {
+  HOT
+  COLD
+  HSM
+  SIMULATED
+}
+
+enum OrgType {
+  ORGANIZATION
+  SEGMENT
+}
+
+enum ScopeType {
+  ENTERPRISE
+  SEGMENT
+  UNIT
+  SBU
+  PROJECT
+  TEAM
+  EXTERNAL
+}
+
+enum CredentialType {
+  IDENTITY
+  ROLE
+  QUALIFICATION
+  ASSET_OWNERSHIP
+}
+
+enum AssetCategory {
+  HARDWARE
+  SOFTWARE
+  DOCUMENT
+  ACCESS_BADGE
+}
+
+enum Transferability {
+  TRANSFERABLE
+  SOULBOUND
+}
+
+enum VoteOption {
+  APPROVE
+  REJECT
+}
+
+enum EventType {
+  AUTH
+  DATA_ACCESS
+  ASSET_TRANSFER
+  CREDENTIAL_ISSUED
+  DID_ROTATED
+  SYSTEM_CONFIG
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  employeeId   String?   @unique
+  status       Status    @default(ACTIVE)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+  avatarUrl    String?
+  phone        String?
+  department   String?
+  position     String?
+
+  dids               DID[]
+  wallets            Wallet[]
+  roleAssignments    RoleAssignment[]
+  issuedCredentials  Credential[] @relation("Issuer")
+  subjectCredentials Credential[] @relation("Subject")
+  ownedAssets        Asset[]      @relation("AssetOwner")
+  custodiedAssets    Asset[]      @relation("AssetCustodian")
+  createdAssets      Asset[]      @relation("AssetCreator")
+  initiatedTransfers AssetTransfer[] @relation("TransferInitiator")
+  approvedTransfers  AssetTransfer[] @relation("TransferApprover")
+  managedProjects    Project[]    @relation("ProjectManager")
+  createdVendors     Vendor[]     @relation("VendorCreator")
+  linkedVendors      Vendor[]     @relation("LinkedVendor")
+  governanceApprovals GovernanceApproval[] @relation("GovernanceSigner")
+}
+
+model DID {
+  id                String     @id @default(uuid())
+  did               String     @unique
+  entityType        EntityType
+  ownerId           String?
+  owner             User?      @relation(fields: [ownerId], references: [id])
+  ownerAddress      String?
+  publicKeyHex      String?
+  publicKeyMultibase String?
+  status            Status     @default(ACTIVE)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  revokedAt         DateTime?
+  blockchainTxHash  String?
+  metadataHash      String?
+  keyVersion        Int        @default(1)
+}
+
+model Wallet {
+  id                 String     @id @default(uuid())
+  userId             String
+  user               User       @relation(fields: [userId], references: [id])
+  address            String     @unique
+  type               WalletType
+  status             Status     @default(ACTIVE)
+  createdAt          DateTime   @default(now())
+  encryptedPrivateKey String
+}
+
+model Organization {
+  id               String   @id @default(uuid())
+  name             String
+  shortName        String
+  orgType          OrgType
+  did              String?
+  status           Status   @default(ACTIVE)
+  createdAt        DateTime @default(now())
+  metadataHash     String?
+  blockchainTxHash String?
+
+  units Unit[]
+}
+
+model Unit {
+  id               String       @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  name             String
+  shortName        String
+  city             String?
+  did              String?
+  status           Status       @default(ACTIVE)
+  createdAt        DateTime     @default(now())
+  metadataHash     String?
+  blockchainTxHash String?
+
+  sbus     SBU[]
+  projects Project[]
+  assets   Asset[]
+}
+
+model SBU {
+  id               String   @id @default(uuid())
+  unitId           String
+  unit             Unit     @relation(fields: [unitId], references: [id])
+  name             String
+  shortName        String
+  description      String?
+  did              String?
+  status           Status   @default(ACTIVE)
+  createdAt        DateTime @default(now())
+  metadataHash     String?
+  blockchainTxHash String?
+
+  projects Project[]
+  assets   Asset[]
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  displayName String
+  description String?
+  permissions String[]
+  isCustom    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  assignments RoleAssignment[]
+}
+
+model RoleAssignment {
+  id               String    @id @default(uuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+  roleId           String
+  role             Role      @relation(fields: [roleId], references: [id])
+  scopeType        ScopeType
+  scopeId          String?
+  grantedBy        String?
+  grantedAt        DateTime  @default(now())
+  expiresAt        DateTime?
+  credentialId     String?
+  isActive         Boolean   @default(true)
+  blockchainTxHash String?
+}
+
+model Credential {
+  id                     String         @id @default(uuid())
+  credentialId           String         @unique
+  type                   CredentialType
+  issuerId               String
+  issuer                 User           @relation("Issuer", fields: [issuerId], references: [id])
+  issuerDID              String
+  subjectId              String
+  subject                User           @relation("Subject", fields: [subjectId], references: [id])
+  subjectDID             String
+  status                 Status         @default(ACTIVE)
+  issuedAt               DateTime       @default(now())
+  expiresAt              DateTime?
+  revokedAt              DateTime?
+  revokedBy              String?
+  claims                 Json
+  credentialHash         String?
+  blockchainTxHash       String?
+  proofSignature         String?
+  proofVerificationMethod String?
+  qrCodeData             String?
+}
+
+model Asset {
+  id               String          @id @default(uuid())
+  name             String
+  description      String?
+  tokenId          String?         @unique
+  category         AssetCategory
+  transferability  Transferability @default(TRANSFERABLE)
+  status           Status          @default(ACTIVE)
+  ownerId          String?
+  owner            User?           @relation("AssetOwner", fields: [ownerId], references: [id])
+  custodianId      String?
+  custodian        User?           @relation("AssetCustodian", fields: [custodianId], references: [id])
+  createdById      String
+  creator          User            @relation("AssetCreator", fields: [createdById], references: [id])
+  unitId           String?
+  unit             Unit?           @relation(fields: [unitId], references: [id])
+  sbuId            String?
+  sbu              SBU?            @relation(fields: [sbuId], references: [id])
+  metadataHash     String?
+  metadataJson     Json?
+  blockchainTxHash String?
+  mintedAt         DateTime?
+  burnedAt         DateTime?
+  requiresApproval Boolean         @default(false)
+  approvalThreshold Int            @default(1)
+
+  transfers AssetTransfer[]
+}
+
+model AssetTransfer {
+  id               String   @id @default(uuid())
+  assetId          String
+  asset            Asset    @relation(fields: [assetId], references: [id])
+  fromUserId       String?
+  toUserId         String
+  initiatedById    String
+  initiator        User     @relation("TransferInitiator", fields: [initiatedById], references: [id])
+  approvedById     String?
+  approver         User?    @relation("TransferApprover", fields: [approvedById], references: [id])
+  status           Status   @default(PENDING)
+  blockchainTxHash String?
+  createdAt        DateTime @default(now())
+  completedAt      DateTime?
+  notes            String?
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  code        String   @unique
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  sbuId       String
+  sbu         SBU      @relation(fields: [sbuId], references: [id])
+  managerId   String
+  manager     User     @relation("ProjectManager", fields: [managerId], references: [id])
+  status      Status   @default(ACTIVE)
+  startDate   DateTime?
+  endDate     DateTime?
+  did         String?
+  createdAt   DateTime @default(now())
+}
+
+model Vendor {
+  id                 String   @id @default(uuid())
+  name               String
+  registrationNumber String?
+  contactEmail       String?
+  contactPhone       String?
+  address            String?
+  status             Status   @default(ACTIVE)
+  createdById        String
+  creator            User     @relation("VendorCreator", fields: [createdById], references: [id])
+  userId             String?
+  linkedUser         User?    @relation("LinkedVendor", fields: [userId], references: [id])
+  did                String?
+  createdAt          DateTime @default(now())
+  qualificationStatus String?
+}
+
+model Transaction {
+  id               String   @id @default(uuid())
+  txHash           String   @unique
+  blockNumber      Int?
+  contract         String?
+  eventName        String?
+  eventData        Json?
+  actorAddress     String?
+  timestamp        DateTime @default(now())
+  status           Status   @default(PENDING)
+  gasUsed          String?
+  linkedEntityId   String?
+  linkedEntityType String?
+  chainId          Int?
+}
+
+model ApprovalRequest {
+  id                String   @id @default(uuid())
+  type              String
+  title             String
+  description       String?
+  requestedBy       String
+  status            Status   @default(PENDING)
+  requiredApprovals Int      @default(1)
+  expiresAt         DateTime?
+  createdAt         DateTime @default(now())
+  linkedEntityId    String?
+  linkedEntityType  String?
+  metadata          Json?
+
+  votes ApprovalVote[]
+}
+
+model ApprovalVote {
+  id                String          @id @default(uuid())
+  approvalRequestId String
+  approvalRequest   ApprovalRequest @relation(fields: [approvalRequestId], references: [id])
+  voterId           String
+  vote              VoteOption
+  votedAt           DateTime        @default(now())
+  comment           String?
+  signerDID         String?
+}
+
+model AuditEvent {
+  id           String    @id @default(uuid())
+  eventType    EventType
+  actorId      String?
+  actorDID     String?
+  actorRole    String?
+  action       String
+  scopeType    ScopeType?
+  scopeId      String?
+  targetId     String?
+  targetType   String?
+  timestamp    DateTime  @default(now())
+  txHash       String?
+  status       Status    @default(SUCCESS)
+  metadataHash String?
+  metadata     Json?
+  ipAddress    String?
+}
+
+model GovernanceProposal {
+  id                String   @id @default(uuid())
+  title             String
+  description       String
+  actionType        String
+  proposedById      String
+  proposedByDID     String?
+  status            Status   @default(PENDING)
+  requiredApprovals Int      @default(1)
+  expiresAt         DateTime?
+  createdAt         DateTime @default(now())
+  executedAt        DateTime?
+  blockchainTxHash  String?
+  targetContract    String?
+  callDataHash      String?
+  
+  approvals GovernanceApproval[]
+}
+
+model GovernanceApproval {
+  id           String             @id @default(uuid())
+  proposalId   String
+  proposal     GovernanceProposal @relation(fields: [proposalId], references: [id])
+  signerUserId String
+  signer       User               @relation("GovernanceSigner", fields: [signerUserId], references: [id])
+  signerDID    String?
+  approvedAt   DateTime           @default(now())
+  signature    String?
+}
