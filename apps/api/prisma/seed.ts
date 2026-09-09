@@ -1,8 +1,8 @@
-﻿import { PrismaClient, Status, EntityType, WalletType, OrgType, ScopeType, CredentialType, AssetCategory, Transferability, VoteOption, EventType } from '@prisma/client';
+﻿import { Status, EntityType, WalletType, OrgType, ScopeType, CredentialType, AssetCategory, Transferability, VoteOption, EventType } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { prisma } from '../src/lib/prisma';
 
-async function main() {
+export async function seedDatabase() {
   console.log('Starting seed [SIMULATED] via PGlite adapter...');
 
   // Roles
@@ -189,9 +189,17 @@ async function main() {
   console.log('Seed completed successfully via PGlite adapter.');
 }
 
-main().catch(e => {
-  console.error(e);
-  process.exit(1);
-}).finally(async () => {
-  await prisma.$disconnect();
-});
+if (require.main === module) {
+  const { ensureDatabase } = require('../src/lib/prisma');
+  ensureDatabase()
+    .then(() => {
+      console.log('Database schema and seed complete.');
+    })
+    .catch((e: unknown) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

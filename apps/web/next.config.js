@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: { typedRoutes: false },
+  // Turbopack configuration (empty object enables default)
+  turbopack: {},
   async rewrites() {
     const apiBase = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     return [

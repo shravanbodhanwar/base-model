@@ -1,9 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
+import { ensureDatabase } from './lib/prisma';
 import authRoutes from './routes/auth.routes';
 import usersRoutes from './routes/users.routes';
 import didsRoutes from './routes/dids.routes';
@@ -18,8 +21,6 @@ import governanceRoutes from './routes/governance.routes';
 import auditRoutes from './routes/audit.routes';
 import blockchainRoutes from './routes/blockchain.routes';
 import verifyRoutes from './routes/verify.routes';
-
-dotenv.config();
 
 const app = express();
 
@@ -49,12 +50,25 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/blockchain', blockchainRoutes);
 app.use('/api/verify', verifyRoutes);
 
+app.get('/health', (_req, res) => {
+  res.json({ ok: true, service: 'bel-edidap-api' });
+});
+
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+const PORT = process.env.PORT || process.env.API_PORT || 3001;
+
+async function start() {
+  await ensureDatabase();
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}
+
+start().catch((err) => {
+  console.error('Failed to start API:', err);
+  process.exit(1);
 });
