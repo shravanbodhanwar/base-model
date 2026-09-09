@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { HashDisplay } from '@/components/shared/HashDisplay';
 import { QRModal } from '@/components/shared/QRModal';
@@ -61,7 +62,7 @@ export default function AssetDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['asset-custody', id] });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Transfer failed');
+      toast.error(getErrorMessage(err, 'Transfer failed'));
     }
   });
 

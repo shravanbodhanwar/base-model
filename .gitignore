@@ -16,3 +16,4 @@ deployed.*.json
 *.tsbuildinfo
 .turbo/
 pgdata/
+.vercel/

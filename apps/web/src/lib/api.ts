@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const isBrowser = typeof window !== 'undefined';
-const defaultBaseUrl = isBrowser ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
+const defaultBaseUrl = process.env.NEXT_PUBLIC_API_URL || (isBrowser ? '' : 'http://localhost:3001');
 
 const api = axios.create({
   baseURL: defaultBaseUrl,
@@ -19,8 +19,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('bel_token');
-      window.location.href = '/login';
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+      const isOnLoginPage = window.location.pathname === '/login';
+      if (!isLoginRequest && !isOnLoginPage) {
+        localStorage.removeItem('bel_token');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

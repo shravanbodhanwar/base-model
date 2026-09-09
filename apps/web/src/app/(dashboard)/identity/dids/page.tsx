@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Key, Shield, RefreshCw, Plus, Search, Filter } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { HashDisplay } from '@/components/shared/HashDisplay';
 import { QRModal } from '@/components/shared/QRModal';
@@ -30,7 +31,7 @@ export default function DIDsPage() {
       queryClient.invalidateQueries({ queryKey: ['dids'] });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Key rotation failed');
+      toast.error(getErrorMessage(err, 'Key rotation failed'));
     }
   });
 
