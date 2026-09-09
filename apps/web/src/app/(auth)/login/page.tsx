@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/auth.store';
+import { getErrorMessage } from '@/lib/utils';
 
 const DEMO_ACCOUNTS = [
   { email: 'root@bel-demo.in', role: 'ROOT_GOVERNANCE', desc: 'Root Governance Admin' },
@@ -35,7 +36,7 @@ export default function LoginPage() {
       toast.success('Authentication successful');
       router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || err?.message || 'Login failed. Check credentials.');
+      toast.error(getErrorMessage(err, 'Login failed. Check credentials.'));
     } finally {
       setIsLoading(false);
     }

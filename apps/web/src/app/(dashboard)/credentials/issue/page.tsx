@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Award, Shield, User, ArrowLeft, CheckCircle2, ChevronRight, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 const CREDENTIAL_TYPES = [
@@ -44,7 +45,7 @@ export default function IssueCredentialPage() {
       router.push(`/credentials/${data?.data?.id || data?.id || ''}`);
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Failed to issue credential');
+      toast.error(getErrorMessage(err, 'Failed to issue credential'));
     }
   });
 

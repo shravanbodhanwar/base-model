@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Shield, Key, Plus, Trash2, CheckCircle2, User } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function RolesPage() {
@@ -45,7 +46,7 @@ export default function RolesPage() {
       queryClient.invalidateQueries({ queryKey: ['role-assignments'] });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Role assignment failed');
+      toast.error(getErrorMessage(err, 'Role assignment failed'));
     }
   });
 

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Building2, ShieldCheck, Plus, Search, CheckCircle2, AlertCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import toast from 'react-hot-toast';
 
@@ -37,7 +38,7 @@ export default function VendorsPage() {
       queryClient.invalidateQueries({ queryKey: ['vendors'] });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Vendor creation failed');
+      toast.error(getErrorMessage(err, 'Vendor creation failed'));
     }
   });
 
@@ -48,7 +49,7 @@ export default function VendorsPage() {
       queryClient.invalidateQueries({ queryKey: ['vendors'] });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Verification failed');
+      toast.error(getErrorMessage(err, 'Verification failed'));
     }
   });
 

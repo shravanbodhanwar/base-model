@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Scale, ShieldAlert, CheckCircle2, Clock, Plus, ArrowRight, UserCheck } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { HashDisplay } from '@/components/shared/HashDisplay';
 import toast from 'react-hot-toast';
@@ -32,7 +33,7 @@ export default function GovernancePage() {
       queryClient.invalidateQueries({ queryKey: ['governance-proposals'] });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Proposal creation failed');
+      toast.error(getErrorMessage(err, 'Proposal creation failed'));
     }
   });
 
@@ -43,7 +44,7 @@ export default function GovernancePage() {
       queryClient.invalidateQueries({ queryKey: ['governance-proposals'] });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Approval failed');
+      toast.error(getErrorMessage(err, 'Approval failed'));
     }
   });
 

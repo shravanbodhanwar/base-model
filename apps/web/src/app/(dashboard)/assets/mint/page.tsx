@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Package, Shield, ArrowLeft, CheckCircle2, Cpu, FileCheck, Award, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 const ASSET_CATEGORIES = [
@@ -53,7 +54,7 @@ export default function MintAssetPage() {
       router.push(`/assets/${data?.data?.id || data?.id || ''}`);
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.error || 'Failed to mint asset');
+      toast.error(getErrorMessage(err, 'Failed to mint asset'));
     }
   });
 
