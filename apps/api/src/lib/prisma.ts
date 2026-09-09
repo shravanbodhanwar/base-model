@@ -8,7 +8,10 @@ import path from 'path';
 
 dotenv.config();
 
-const dataDir = path.join(__dirname, '../../pgdata');
+// PGlite keeps an exclusive lock on its data directory. A configurable path
+// makes it possible to run an isolated local API instance (for tests or a
+// second developer) without crashing the existing server.
+const dataDir = process.env.PGLITE_DATA_DIR || path.join(__dirname, '../../pgdata');
 export const pgliteDb = new PGlite(dataDir);
 
 const poolProxy = Object.create(Pool.prototype);
@@ -98,6 +101,15 @@ async function seedIfEmpty(): Promise<void> {
   await seedDatabase();
 }
 
+async function syncBuiltInRolePermissions(): Promise<void> {
+  // Keep an existing demo database aligned with changes to the built-in roles
+  // without re-running the full seed (which would duplicate demo entities).
+  await prisma.role.updateMany({
+    where: { name: 'ENTERPRISE_ADMIN' },
+    data: { permissions: ['MANAGE_USERS', 'MANAGE_ROLES', 'MANAGE_ORGS', 'VIEW_AUDIT', 'ISSUE_CREDENTIAL'] },
+  });
+}
+
 export async function ensureDatabase(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
@@ -108,6 +120,7 @@ export async function ensureDatabase(): Promise<void> {
           await applySchema();
         }
         await seedIfEmpty();
+        await syncBuiltInRolePermissions();
       } catch (err) {
         initPromise = null;
         console.error('[Database] Failed to initialize embedded PostgreSQL:', err);

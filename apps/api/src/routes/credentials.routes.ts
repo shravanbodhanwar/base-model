@@ -1,6 +1,6 @@
 ﻿import { prisma } from '../lib/prisma';
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { CredentialType } from '@prisma/client';
 import { authenticateJWT, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../middleware/rbac';
 import { credentialService } from '../services/credential.service';
@@ -45,8 +45,45 @@ router.get('/', async (req: AuthRequest, res) => {
 
 router.post('/issue', requirePermission('ISSUE_CREDENTIAL'), async (req: AuthRequest, res) => {
   try {
-    const { issuerDID, subjectDID, type, claims, subjectId, expiresAt } = req.body;
-    const vc = await credentialService.issueCredential(issuerDID, subjectDID, type, claims, req.user!.id, subjectId, expiresAt ? new Date(expiresAt) : undefined);
+    const { subjectDID, type, claims, subjectId, expiresAt } = req.body;
+    if (!subjectId || !subjectDID || !type || !claims || typeof claims !== 'object' || Array.isArray(claims)) {
+      return res.status(400).json({ success: false, error: 'subjectId, subjectDID, type, and a JSON claims object are required' });
+    }
+    const subject = await prisma.user.findUnique({ where: { id: subjectId }, select: { id: true } });
+    if (!subject) return res.status(404).json({ success: false, error: 'Credential subject not found' });
+    const parsedExpiry = expiresAt ? new Date(expiresAt) : undefined;
+    if (parsedExpiry && Number.isNaN(parsedExpiry.getTime())) {
+      return res.status(400).json({ success: false, error: 'expiresAt must be a valid date' });
+    }
+
+    // The issuer is always the authenticated user. Deriving their DID on the
+    // server prevents a caller from forging another employee as the issuer.
+    const issuerDID = (await prisma.dID.findFirst({ where: { ownerId: req.user!.id, status: 'ACTIVE' } }))?.did
+      || `did:bel:employee:${req.user!.employeeId || req.user!.id}`;
+    const schemaTypes: Record<string, CredentialType> = {
+      EmployeeIdentityCredential: 'IDENTITY',
+      DepartmentMembershipCredential: 'ROLE',
+      RoleCredential: 'ROLE',
+      SecurityClearanceCredential: 'QUALIFICATION',
+      TrainingCertificationCredential: 'QUALIFICATION',
+      ProjectMembershipCredential: 'ROLE',
+      VendorRegistrationCredential: 'IDENTITY',
+      SupplierQualificationCredential: 'QUALIFICATION',
+    };
+    const credentialType = schemaTypes[type] || (Object.values(CredentialType).includes(type) ? type as CredentialType : null);
+    if (!credentialType) {
+      return res.status(400).json({ success: false, error: 'Unsupported credential schema' });
+    }
+
+    const vc = await credentialService.issueCredential(
+      issuerDID,
+      subjectDID,
+      credentialType,
+      { ...claims, credentialSchema: type },
+      req.user!.id,
+      subjectId,
+      parsedExpiry
+    );
     res.status(201).json({ success: true, data: vc });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });

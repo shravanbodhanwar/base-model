@@ -44,8 +44,8 @@ export const apiClient = {
     getUsers: () => api.get('/api/users').then(res => res.data),
     getUser: (id: string) => api.get(`/api/users/${id}`).then(res => res.data),
     createUser: (data: any) => api.post('/api/users', data).then(res => res.data),
-    suspendUser: (id: string) => api.post(`/api/users/${id}/suspend`).then(res => res.data),
-    activateUser: (id: string) => api.post(`/api/users/${id}/activate`).then(res => res.data),
+    suspendUser: (id: string) => api.patch(`/api/users/${id}/suspend`).then(res => res.data),
+    activateUser: (id: string) => api.patch(`/api/users/${id}/activate`).then(res => res.data),
   },
   dids: {
     getDIDs: () => api.get('/api/dids').then(res => res.data),
@@ -57,15 +57,15 @@ export const apiClient = {
   organizations: {
     getOrganizations: () => api.get('/api/organizations').then(res => res.data),
     getUnits: (orgId: string) => api.get(`/api/organizations/${orgId}/units`).then(res => res.data),
-    getSBUs: (unitId: string) => api.get(`/api/units/${unitId}/sbus`).then(res => res.data),
+    getSBUs: (unitId: string) => api.get(`/api/organizations/units/${unitId}/sbus`).then(res => res.data),
   },
   credentials: {
     getCredentials: () => api.get('/api/credentials').then(res => res.data),
     getCredential: (id: string) => api.get(`/api/credentials/${id}`).then(res => res.data),
     issueCredential: (data: any) => api.post('/api/credentials/issue', data).then(res => res.data),
     revokeCredential: (id: string) => api.post(`/api/credentials/${id}/revoke`).then(res => res.data),
-    verifyCredential: (id: string) => api.get(`/api/credentials/${id}/verify`).then(res => res.data),
-    getCredentialQR: (id: string) => api.get(`/api/credentials/${id}/qr`).then(res => res.data),
+    verifyCredential: (id: string) => publicApi.get(`/api/verify/credential/${id}`).then(res => res.data),
+    getCredentialQR: (id: string) => api.get(`/api/credentials/${id}`).then(res => res.data),
   },
   assets: {
     getAssets: (filters?: any) => api.get('/api/assets', { params: filters }).then(res => res.data),
@@ -79,14 +79,14 @@ export const apiClient = {
     getVendors: () => api.get('/api/vendors').then(res => res.data),
     getVendor: (id: string) => api.get(`/api/vendors/${id}`).then(res => res.data),
     createVendor: (data: any) => api.post('/api/vendors', data).then(res => res.data),
-    verifyVendor: (id: string) => api.post(`/api/vendors/${id}/verify`).then(res => res.data),
+    verifyVendor: (id: string) => api.patch(`/api/vendors/${id}/verify`).then(res => res.data),
   },
   governance: {
     getProposals: () => api.get('/api/governance').then(res => res.data),
     getProposal: (id: string) => api.get(`/api/governance/${id}`).then(res => res.data),
-    createProposal: (data: any) => api.post('/api/governance/proposals', data).then(res => res.data),
-    approveProposal: (id: string) => api.post(`/api/governance/proposals/${id}/approve`).then(res => res.data),
-    cancelProposal: (id: string) => api.post(`/api/governance/proposals/${id}/cancel`).then(res => res.data),
+    createProposal: (data: any) => api.post('/api/governance', data).then(res => res.data),
+    approveProposal: (id: string) => api.post(`/api/governance/${id}/approve`).then(res => res.data),
+    cancelProposal: (id: string) => api.post(`/api/governance/${id}/cancel`).then(res => res.data),
   },
   audit: {
     getAuditEvents: (filters?: any) => api.get('/api/audit', { params: filters }).then(res => res.data),
@@ -112,6 +112,6 @@ export const apiClient = {
     getRoles: () => api.get('/api/roles').then(res => res.data),
     getRoleAssignments: () => api.get('/api/roles/assignments').then(res => res.data),
     assignRole: (data: any) => api.post('/api/roles/assign', data).then(res => res.data),
-    revokeAssignment: (id: string) => api.post(`/api/roles/assignments/${id}/revoke`).then(res => res.data),
+    revokeAssignment: (id: string) => api.delete(`/api/roles/assignments/${id}`).then(res => res.data),
   }
 };

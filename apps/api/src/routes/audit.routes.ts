@@ -8,7 +8,13 @@ const router = Router();
 // Using singleton prisma from lib/prisma
 router.use(authenticateJWT);
 
-router.get('/', requirePermission('VIEW_AUDIT_LOG'), async (req: AuthRequest, res) => {
+const requireAuditRead = (req: AuthRequest, res: any, next: any) => {
+  const permissions = req.user?.roleAssignments?.flatMap((assignment: any) => assignment.role.permissions) || [];
+  if (permissions.includes('ALL') || permissions.includes('VIEW_AUDIT') || permissions.includes('VIEW_AUDIT_LOG')) return next();
+  return res.status(403).json({ error: 'Forbidden: Missing required permission' });
+};
+
+router.get('/', requireAuditRead, async (req: AuthRequest, res) => {
   try {
     const { eventType, actorId, dateFrom, dateTo, take, skip } = req.query;
     const filter: any = {};
@@ -36,7 +42,7 @@ router.get('/', requirePermission('VIEW_AUDIT_LOG'), async (req: AuthRequest, re
   }
 });
 
-router.get('/stats', requirePermission('VIEW_AUDIT_LOG'), async (req: AuthRequest, res) => {
+router.get('/stats', requireAuditRead, async (req: AuthRequest, res) => {
   try {
     const stats = await prisma.auditEvent.groupBy({
       by: ['eventType'],

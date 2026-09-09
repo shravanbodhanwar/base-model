@@ -8,7 +8,7 @@ export async function seedDatabase() {
   // Roles
   const rolesData = [
     { name: 'ROOT_GOVERNANCE', displayName: 'Root Governance', permissions: ['ALL'] },
-    { name: 'ENTERPRISE_ADMIN', displayName: 'Enterprise Admin', permissions: ['MANAGE_USERS', 'MANAGE_ROLES', 'MANAGE_ORGS', 'VIEW_AUDIT'] },
+    { name: 'ENTERPRISE_ADMIN', displayName: 'Enterprise Admin', permissions: ['MANAGE_USERS', 'MANAGE_ROLES', 'MANAGE_ORGS', 'VIEW_AUDIT', 'ISSUE_CREDENTIAL'] },
     { name: 'HR_ADMIN', displayName: 'HR Admin', permissions: ['MANAGE_USERS', 'ISSUE_CREDENTIAL', 'CREATE_DID'] },
     { name: 'SECURITY_ADMIN', displayName: 'Security Admin', permissions: ['REVOKE_DID', 'REVOKE_CREDENTIAL', 'VIEW_SECURITY_EVENTS'] },
     { name: 'PROCUREMENT_ADMIN', displayName: 'Procurement Admin', permissions: ['MANAGE_VENDORS', 'ISSUE_PROCUREMENT_CREDENTIAL'] },
@@ -24,7 +24,7 @@ export async function seedDatabase() {
   for (const r of rolesData) {
     roles[r.name] = await prisma.role.upsert({
       where: { name: r.name },
-      update: {},
+      update: { permissions: r.permissions },
       create: r,
     });
   }

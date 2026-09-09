@@ -4,7 +4,7 @@ import { PGlite } from '@electric-sql/pglite';
 // @ts-ignore
 const { fromNodeSocket } = require('pg-gateway/node');
 
-const dataDir = path.join(__dirname, '../pgdata');
+const dataDir = process.env.PGLITE_DATA_DIR || path.join(__dirname, '../pgdata');
 const db = new PGlite(dataDir);
 
 const server = net.createServer(async (socket) => {

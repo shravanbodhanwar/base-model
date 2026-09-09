@@ -59,8 +59,14 @@ export default function IssueCredentialPage() {
     let parsedClaims = {};
     try {
       parsedClaims = JSON.parse(claimsText);
-    } catch {
-      toast.error('Claims must be valid JSON');
+    } catch (error) {
+      const detail = error instanceof Error ? error.message.replace(/^.*?: /, '') : '';
+      toast.error(`Claims must be valid JSON${detail ? `: ${detail}` : ''}`);
+      return;
+    }
+
+    if (!parsedClaims || Array.isArray(parsedClaims) || typeof parsedClaims !== 'object') {
+      toast.error('Claims must be a JSON object, for example { "department": "Military Radars SBU" }');
       return;
     }
 

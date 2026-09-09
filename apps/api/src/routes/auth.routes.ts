@@ -10,33 +10,41 @@ const router = Router();
 // Using singleton prisma from lib/prisma
 
 router.post('/login', auditLog('AUTH', 'LOGIN'), async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body || {};
+    if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
+      return res.status(400).json({ error: 'email and password are required' });
+    }
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-    include: { roleAssignments: { include: { role: true } } }
-  });
+    const user = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      include: { roleAssignments: { include: { role: true } } }
+    });
 
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (user.status !== 'ACTIVE') {
+      return res.status(403).json({ error: 'Account is not active' });
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '8h' }
+    );
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() }
+    });
+
+    res.json({ token, user: { id: user.id, email: user.email, name: user.name, roleAssignments: user.roleAssignments } });
+  } catch (err) {
+    console.error('Login failed', err);
+    res.status(500).json({ error: 'Unable to complete login' });
   }
-
-  if (user.status !== 'ACTIVE') {
-    return res.status(403).json({ error: 'Account is not active' });
-  }
-
-  const token = jwt.sign(
-    { userId: user.id, email: user.email },
-    process.env.JWT_SECRET || 'fallback_secret',
-    { expiresIn: '8h' }
-  );
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { lastLoginAt: new Date() }
-  });
-
-  res.json({ token, user: { id: user.id, email: user.email, name: user.name, roleAssignments: user.roleAssignments } });
 });
 
 router.post('/logout', authenticateJWT, auditLog('AUTH', 'LOGOUT'), (req, res) => {
