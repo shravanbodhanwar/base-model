@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Turbopack configuration (empty object enables default)
-  turbopack: {},
   async rewrites() {
     const apiBase = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
     const target = apiBase || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3001');
